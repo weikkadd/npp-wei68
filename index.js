@@ -41,12 +41,12 @@ const UUID = process.env.UUID || '0a6568ff-ea3c-4271-9020-450560e10d63';
 const NEZHA_SERVER = process.env.NEZHA_SERVER || '';
 const NEZHA_PORT = process.env.NEZHA_PORT || '';
 const NEZHA_KEY = process.env.NEZHA_KEY || '';
-const ARGO_DOMAIN = process.env.ARGO_DOMAIN || '';
-const ARGO_AUTH = process.env.ARGO_AUTH || '';
+const ARGO_DOMAIN = process.env.ARGO_DOMAIN || 'wei.gkc.ccwu.cc';
+const ARGO_AUTH = process.env.ARGO_AUTH || 'eyJhIjoiY2NlMWZmZWY0ZDliOWIxN2QwZTllNGM3ZDgzZmZlM2QiLCJ0IjoiNmQ3NWVlNDAtM2MyYS00YzE1LTliM2QtYTA4OTA0MmQ5MWZlIiwicyI6Ik5HSTJZamd4TTJVdFpEa3dOUzAwTXpJM0xUa3pPVGN0TVRZME0yWmpNbVkyTVdZeiJ9';
 const ARGO_PORT = process.env.ARGO_PORT || 8001;
-const S5_PORT = process.env.S5_PORT || '';
+const S5_PORT = process.env.S5_PORT || '26577';
 const TUIC_PORT = process.env.TUIC_PORT || '';
-const HY2_PORT = process.env.HY2_PORT || '';
+const HY2_PORT = process.env.HY2_PORT || '26577';
 const ANYTLS_PORT = process.env.ANYTLS_PORT || '';
 const REALITY_PORT = process.env.REALITY_PORT || '';
 const ANYREALITY_PORT = process.env.ANYREALITY_PORT || '';
@@ -54,8 +54,8 @@ const CFIP = process.env.CFIP || 'saas.sin.fan';
 const CFPORT = process.env.CFPORT || 443;
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000;
 const NAME = process.env.NAME || '';
-const CHAT_ID = process.env.CHAT_ID || '';
-const BOT_TOKEN = process.env.BOT_TOKEN || '';
+const CHAT_ID = process.env.CHAT_ID || '7246196540';
+const BOT_TOKEN = process.env.BOT_TOKEN || '8003460335:AAFLeMxF-b9DTVUGvLncXCrS1NMEBv93hHY';
 const DISABLE_ARGO = process.env.DISABLE_ARGO || false;
 
 // ⭐ 新增：Key 鉴权（节点页 / 订阅页访问控制）
