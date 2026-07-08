@@ -1,0 +1,18 @@
+{
+  "name": "node-camouflage-vless",
+  "version": "3.0.0",
+  "description": "节点伪装 + 多协议代理 + Argo 隧道（单文件 Node.js 容器版）",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "license": "MIT"
+}
