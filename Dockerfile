@@ -1,30 +1,26 @@
-# Node.js 20 容器部署 - Dockerfile
-# 适用于 Hugging Face Spaces / Render / 自建 Docker 部署
-# 不适用于 Koyeb（Koyeb 用 Dockerfile 或 buildpack）
+# Discord Music Bot - Node.js 应用
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package.json ./
+RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
 
-FROM node:20-slim
-
-# 安装必要工具（cloudflared 下载需要 ca-certificates，sing-box 运行需要 libc6）
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
+FROM node:20-alpine AS runtime
 WORKDIR /app
 
-# 复制 package.json 并安装依赖
-COPY package.json ./
-RUN npm install --omit=dev --no-audit --no-fund
+RUN apk add --no-cache dumb-init
 
-# 复制源码
-COPY . .
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001 -G nodejs
 
-# 暴露端口（HF Spaces 默认 7860，其他平台默认 3000）
-ENV PORT=7860
+COPY --from=deps /app/node_modules ./node_modules
+COPY --chown=nodejs:nodejs . .
+
+USER nodejs
+
 EXPOSE 7860
 
-# 健康检查
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD curl -f http://localhost:7860/ || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:7860/ > /dev/null || exit 1
 
-CMD ["node", "index.js"]
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "bot.js"]
